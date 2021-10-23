@@ -26,7 +26,7 @@ class BuildListView extends StatefulWidget {
 }
 
 class _BuildListViewState extends State<BuildListView> {
-  //Construir um ambiente para consumir a API e o builder da lista
+  //Build an environment to consume the API and list builder
   var tasks = [];
 
   _getTasks() {
@@ -46,13 +46,25 @@ class _BuildListViewState extends State<BuildListView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Lista de tarefas'),
-        ),
+        appBar: AppBar(title: const Text('Lista de tarefas'), actions: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(right: 20.0),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(context,
+                    new MaterialPageRoute(builder: (context) => addTaskPage()));
+              },
+              child: Text(
+                "+",
+                style: TextStyle(fontSize: 50),
+              ),
+            ),
+          )
+        ]),
         body: tasksList());
   }
 
-  //constroi a lista(widgegt) listView (ListView.builder)
+  //Build the list(Widget) listView(ListView.builder)
   tasksList() {
     return ListView.builder(
         itemCount: tasks.length,
@@ -68,20 +80,80 @@ class _BuildListViewState extends State<BuildListView> {
               style: TextStyle(fontSize: 20.0, color: Colors.black),
             ),
             subtitle: Text(tasks[index].date),
-            // onTap: () {
-            //   Navigator.push(
-            //       context,
-            //       new MaterialPageRoute(
-            //           builder: (context) => DetailPage(tasks[index])));
-            // }, //Quando clicar no item da lista
+            onTap: () {
+              Navigator.push(
+                  context,
+                  new MaterialPageRoute(
+                      builder: (context) => DetailPage(tasks[index])));
+            }, //When clicking the list item
           );
         });
   }
 }
 
-// class DetailPage extends StatelessWidget{
+class DetailPage extends StatelessWidget {
+  final Task task;
 
-// }
+  DetailPage(this.task);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text(task.name),
+        ),
+        body: taskDetails());
+  }
+
+  taskDetails() {
+    return Container(
+      padding: new EdgeInsets.all(32.0),
+      child: ListTile(
+        title: Text(task.name, style: TextStyle(fontWeight: FontWeight.w500)),
+        subtitle: Text(task.realized.toString()),
+        leading: Icon(Icons.email, color: Colors.blue),
+      ),
+    );
+  }
+}
+
+class addTaskPage extends StatefulWidget {
+  @override
+  _addTaskPageState createState() => _addTaskPageState();
+}
+
+class _addTaskPageState extends State<addTaskPage> {
+  TextEditingController addTaskController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Adicionar nova tarefa"),
+      ),
+      body: Container(
+        child: Column(
+          children: <Widget>[
+            TextFormField(
+              controller: addTaskController,
+              decoration: InputDecoration(
+                labelText: "Informe a tarefa",
+              ),
+            ),
+            MaterialButton(
+              onPressed: () {
+                API.addTask(addTaskController.text);
+              },
+              child: Text("Adicionar tarefa"),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+//TODO: edit user page and implement it
 
 Uri url = Uri.parse('http://emsapi.esy.es/todolist/api/task/search/');
 
@@ -91,13 +163,28 @@ class API {
       url,
       headers: <String, String>{
         "Content-type": "Application/json; charset=UTF-8",
-        "Authorization": "123",
+        "Authorization":
+            "A3FABC0E28106BC6A4F4", //123 for professor's test login
       },
+    );
+  }
+
+  static Future addTask(String task) async {
+    url = Uri.parse('http://emsapi.esy.es/todolist/api/task/new/');
+    return await http.post(
+      url,
+      headers: <String, String>{
+        "content-type": "application/json",
+        "Authorization": "A3FABC0E28106BC6A4F4",
+      },
+      body: jsonEncode(<String, String>{
+        "name": task,
+      }),
     );
   }
 }
 
-//Classe que faz o parser do JSON retornado da API
+//Class that parses the JSON returned by the API
 class Task {
   final int id;
   final int userId;
