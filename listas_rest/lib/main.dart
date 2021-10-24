@@ -46,7 +46,23 @@ class _BuildListViewState extends State<BuildListView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: const Text('Lista de tarefas'), actions: <Widget>[
+        appBar: AppBar(title: const Text('Tarefas'), actions: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(right: 20.0),
+            child: IconButton(
+              icon: Icon(
+                Icons.account_circle_outlined,
+                color: Colors.white,
+                size: 40,
+              ),
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    new MaterialPageRoute(
+                        builder: (context) => editUserPage()));
+              },
+            ),
+          ),
           Padding(
             padding: EdgeInsets.only(right: 20.0),
             child: GestureDetector(
@@ -59,7 +75,7 @@ class _BuildListViewState extends State<BuildListView> {
                 style: TextStyle(fontSize: 50),
               ),
             ),
-          )
+          ),
         ]),
         body: tasksList());
   }
@@ -67,27 +83,28 @@ class _BuildListViewState extends State<BuildListView> {
   //Build the list(Widget) listView(ListView.builder)
   tasksList() {
     return ListView.builder(
-        itemCount: tasks.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            leading: CircleAvatar(
-              backgroundImage: NetworkImage(
-                  "https://www.pinclipart.com/picdir/big/218-2189254_free-online-avatars-kid-characters-family-vector-for.png"),
-              backgroundColor: Colors.blueAccent[300],
-            ),
-            title: Text(
-              tasks[index].name,
-              style: TextStyle(fontSize: 20.0, color: Colors.black),
-            ),
-            subtitle: Text(tasks[index].date),
-            onTap: () {
-              Navigator.push(
-                  context,
-                  new MaterialPageRoute(
-                      builder: (context) => DetailPage(tasks[index])));
-            }, //When clicking the list item
-          );
-        });
+      itemCount: tasks.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundImage: NetworkImage(
+                "https://www.pinclipart.com/picdir/big/218-2189254_free-online-avatars-kid-characters-family-vector-for.png"),
+            backgroundColor: Colors.blueAccent[300],
+          ),
+          title: Text(
+            tasks[index].name,
+            style: TextStyle(fontSize: 20.0, color: Colors.black),
+          ),
+          subtitle: Text(tasks[index].date),
+          onTap: () {
+            Navigator.push(
+                context,
+                new MaterialPageRoute(
+                    builder: (context) => DetailPage(tasks[index])));
+          }, //When clicking the list item
+        );
+      },
+    );
   }
 }
 
@@ -153,7 +170,50 @@ class _addTaskPageState extends State<addTaskPage> {
   }
 }
 
-//TODO: edit user page and implement it
+class editUserPage extends StatefulWidget {
+  @override
+  _editUserPageState createState() => _editUserPageState();
+}
+
+class _editUserPageState extends State<editUserPage> {
+  TextEditingController userNameController = TextEditingController();
+  TextEditingController userEmailController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Editar usuário"),
+      ),
+      body: Container(
+        child: Column(
+          children: [
+            TextFormField(
+              controller: userNameController,
+              decoration: InputDecoration(
+                labelText: "Novo nome",
+              ),
+            ),
+            TextFormField(
+              controller: userEmailController,
+              decoration: InputDecoration(
+                labelText: "Novo e-mail",
+              ),
+            ),
+            MaterialButton(
+                child: Text("Salvar"),
+                onPressed: () {
+                  API.editUser(
+                    userNameController.text,
+                    userEmailController.text,
+                  );
+                }),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 Uri url = Uri.parse('http://emsapi.esy.es/todolist/api/task/search/');
 
@@ -179,6 +239,23 @@ class API {
       },
       body: jsonEncode(<String, String>{
         "name": task,
+      }),
+    );
+  }
+
+  static Future editUser(String name, String email) async {
+    url = Uri.parse('http://emsapi.esy.es/todolist/api/user/update/');
+    return await http.put(
+      url,
+      headers: <String, String>{
+        "content-type": "application/json",
+        "Authorization": "A3FABC0E28106BC6A4F4"
+      },
+      body: jsonEncode(<String, String>{
+        "name": name,
+        "email": email,
+        "username": "gustavo",
+        "password": "gustavo"
       }),
     );
   }
